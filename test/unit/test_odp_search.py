@@ -95,7 +95,8 @@ async def test_search_handles_empty_databag():
 @pytest.mark.unit
 async def test_assignee_filter_sent_as_lucene_post():
     """assignee_name must produce a POST with a Lucene clause on
-    applicationMetaData.firstApplicantName (issue #21)."""
+    applicationMetaData.firstApplicantName (issue #21). Single-word values
+    are not quoted."""
     mock_request = AsyncMock(return_value=_fake_upstream_response(0))
     with patch(
         "patent_mcp_server.patents.api_client.make_request",
@@ -107,7 +108,7 @@ async def test_assignee_filter_sent_as_lucene_post():
     assert kwargs.get("method") == "POST"
     body = kwargs.get("data")
     assert body is not None
-    assert 'applicationMetaData.firstApplicantName:"IBM"' in body["q"]
+    assert 'applicationMetaData.firstApplicantName:IBM' in body["q"]
     assert body["pagination"] == {"offset": 0, "limit": 5}
 
 
@@ -131,7 +132,7 @@ async def test_multiple_filters_are_ANDed_in_q():
     q = body["q"]
     assert ' AND ' in q
     assert 'applicationMetaData.firstApplicantName:"NVIDIA Corporation"' in q
-    assert 'applicationMetaData.firstInventorName:"Smith"' in q
+    assert 'applicationMetaData.firstInventorName:Smith' in q
     assert 'applicationMetaData.filingDate:[2024-01-01 TO 2024-12-31]' in q
 
 
@@ -152,7 +153,7 @@ async def test_free_text_query_is_wrapped_and_combined():
 
     q = mock_request.call_args.kwargs["data"]["q"]
     assert "(neural network)" in q
-    assert 'applicationMetaData.firstApplicantName:"IBM"' in q
+    assert 'applicationMetaData.firstApplicantName:IBM' in q
     assert ' AND ' in q
 
 
@@ -173,6 +174,28 @@ async def test_quotes_in_value_are_escaped():
 
 
 @pytest.mark.unit
+async def test_wildcard_values_are_not_quoted():
+    """Wildcard values (with * or ?) must NOT be quoted so the Lucene wildcard
+    operator works. E.g., IBM* should produce IBM* not "IBM*" (which would
+    search for the literal string IBM*)."""
+    mock_request = AsyncMock(return_value=_fake_upstream_response(0))
+    with patch(
+        "patent_mcp_server.patents.api_client.make_request",
+        new=mock_request,
+    ):
+        await odp_search_applications(
+            assignee_name="IBM*",
+            inventor_name="Smith?",
+            limit=5,
+        )
+
+    q = mock_request.call_args.kwargs["data"]["q"]
+    # Wildcards should NOT be quoted so they function as Lucene operators
+    assert 'applicationMetaData.firstApplicantName:IBM*' in q
+    assert 'applicationMetaData.firstInventorName:Smith?' in q
+
+
+@pytest.mark.unit
 async def test_no_filters_returns_missing_filter_error():
     """Without any filter we'd dump the entire 12.8M-record corpus, so the
     tool must refuse (issue #21)."""
@@ -187,3 +210,63 @@ async def test_no_filters_returns_missing_filter_error():
     assert result.get("error_code") == "MISSING_FILTER"
     # And we must not have called upstream.
     mock_request.assert_not_called()
+
+
+@pytest.mark.unit
+async def test_fields_parameter_included_in_request_body():
+    """When fields are provided, they must be included in the POST body for
+    response projection."""
+    mock_request = AsyncMock(return_value=_fake_upstream_response(0))
+    with patch(
+        "patent_mcp_server.patents.api_client.make_request",
+        new=mock_request,
+    ):
+        await odp_search_applications(
+            query="test",
+            fields=[
+                "applicationNumberText",
+                "applicationMetaData.patentNumber",
+                "applicationMetaData.filingDate",
+            ],
+            limit=5,
+        )
+
+    body = mock_request.call_args.kwargs["data"]
+    assert "fields" in body
+    assert body["fields"] == [
+        "applicationNumberText",
+        "applicationMetaData.patentNumber",
+        "applicationMetaData.filingDate",
+    ]
+
+
+@pytest.mark.unit
+async def test_fields_parameter_omitted_when_not_provided():
+    """When fields are not provided, the request body must not include a
+    fields key (preserving current behavior)."""
+    mock_request = AsyncMock(return_value=_fake_upstream_response(0))
+    with patch(
+        "patent_mcp_server.patents.api_client.make_request",
+        new=mock_request,
+    ):
+        await odp_search_applications(query="test", limit=5)
+
+    body = mock_request.call_args.kwargs["data"]
+    assert "fields" not in body
+    assert "q" in body
+    assert "pagination" in body
+
+
+@pytest.mark.unit
+async def test_empty_fields_list_omitted_from_request_body():
+    """An empty fields list should be treated as None and not included in
+    the request body."""
+    mock_request = AsyncMock(return_value=_fake_upstream_response(0))
+    with patch(
+        "patent_mcp_server.patents.api_client.make_request",
+        new=mock_request,
+    ):
+        await odp_search_applications(query="test", fields=[], limit=5)
+
+    body = mock_request.call_args.kwargs["data"]
+    assert "fields" not in body

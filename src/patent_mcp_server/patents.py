@@ -801,53 +801,86 @@ async def odp_search_applications(
     filing_date_to: Optional[str] = None,
     offset: int = 0,
     limit: int = 25,
+    fields: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Search patent applications in USPTO Open Data Portal.
 
     USE THIS TOOL WHEN: You need to search applications with filtering
     by applicant metadata, dates, or other criteria not available in PPUBS.
 
-    Supports both free-text queries and structured multi-field filtering.
-    Typed filters are AND-ed together; pass a Lucene-style string in
-    `query` for OR or more complex expressions.
+    PARAMETER MAPPING: Simple parameter names are automatically translated to ODP
+    Lucene query fields and combined with AND logic:
+    - inventor_name → applicationMetaData.firstInventorName
+    - assignee_name → applicationMetaData.firstApplicantName
+    - patent_number → applicationMetaData.patentNumber
+    - application_number → applicationNumberText
+    - filing_date_from/to → applicationMetaData.filingDate:[start TO end]
+
+    AUTO-QUOTING & WILDCARDS: Values are automatically quoted for exact phrase
+    matching. Use wildcards (*) for partial matches:
+    - "Smith" searches for exact phrase
+    - "Smit*" searches for anything starting with "Smit"
+    - "Micro*" matches "Microsoft", "Microsystems", etc.
+
+    ADVANCED QUERIES: Pass a Lucene-style string in `query` for OR logic or
+    raw field names:
+    - 'applicationMetaData.firstInventorName:Smith OR
+      applicationMetaData.firstInventorName:Jones' for multiple inventors
+    - Combine with other filters: query='machine learning' AND assignee_name='IBM'
+      generates: (machine learning) AND applicationMetaData.firstApplicantName:"IBM"
 
     Args:
-        query: Free-text or Lucene-style query (e.g. 'neural network',
-               'applicationMetaData.firstInventorName:Smith OR
-               applicationMetaData.firstInventorName:Jones')
+        query: Free-text or Lucene-style query (e.g., 'neural network',
+               'applicationMetaData.firstInventorName:Smith OR Jones')
         application_number: Filter by application number (exact match)
         patent_number: Filter by patent number (exact match)
-        inventor_name: Filter by inventor name (matches first inventor)
-        assignee_name: Filter by applicant/assignee name (matches first applicant)
+        inventor_name: Filter by inventor name (matches first inventor; auto-quoted)
+        assignee_name: Filter by applicant/assignee name (matches first applicant; auto-quoted)
         filing_date_from: Filing date range start (YYYY-MM-DD)
         filing_date_to: Filing date range end (YYYY-MM-DD)
         offset: Starting position (default: 0)
         limit: Max results (default: 25)
+        fields: Response projection — list of ODP field names to return (e.g.,
+                ['applicationNumberText', 'applicationMetaData.patentNumber',
+                'applicationMetaData.filingDate']). Reduces over-fetching of
+                large nested structures. Omit to return all fields (default).
 
     Returns:
         Normalized response with matching applications.
     """
     clauses: List[str] = []
 
-    def _quote(value: str) -> str:
-        # Lucene-safe quoted value: escape embedded quotes and backslashes.
+    def _format_value(value: str) -> str:
+        # Escape embedded quotes and backslashes.
         escaped = value.replace("\\", "\\\\").replace('"', '\\"')
-        return f'"{escaped}"'
+
+        # Only quote if the value contains whitespace AND no wildcard chars.
+        # This allows wildcards (*, ?) to work as Lucene operators while still
+        # quoting multi-word phrases like "Apple Inc."
+        has_whitespace = ' ' in value or '\t' in value
+        has_wildcard = '*' in value or '?' in value
+
+        if has_whitespace and not has_wildcard:
+            # Multi-word phrase without wildcards: quote for exact matching
+            return f'"{escaped}"'
+        else:
+            # Single word, wildcard, or mixed: leave unquoted
+            return escaped
 
     if query:
         # Pass user query through verbatim — supports Lucene operators.
         clauses.append(f"({query})")
     if application_number:
-        clauses.append(f"applicationNumberText:{_quote(application_number)}")
+        clauses.append(f"applicationNumberText:{_format_value(application_number)}")
     if patent_number:
-        clauses.append(f"applicationMetaData.patentNumber:{_quote(patent_number)}")
+        clauses.append(f"applicationMetaData.patentNumber:{_format_value(patent_number)}")
     if inventor_name:
         clauses.append(
-            f"applicationMetaData.firstInventorName:{_quote(inventor_name)}"
+            f"applicationMetaData.firstInventorName:{_format_value(inventor_name)}"
         )
     if assignee_name:
         clauses.append(
-            f"applicationMetaData.firstApplicantName:{_quote(assignee_name)}"
+            f"applicationMetaData.firstApplicantName:{_format_value(assignee_name)}"
         )
     if filing_date_from or filing_date_to:
         start = filing_date_from or "*"
@@ -869,6 +902,11 @@ async def odp_search_applications(
         "q": lucene_query,
         "pagination": {"offset": offset, "limit": limit},
     }
+
+    # Add optional fields parameter for response projection. ODP accepts
+    # "fields" as a list in the POST body to limit returned fields.
+    if fields and len(fields) > 0:
+        body["fields"] = fields
 
     url = f"{config.API_BASE_URL}/api/v1/patent/applications/search"
     result = await api_client.make_request(url, method="POST", data=body)

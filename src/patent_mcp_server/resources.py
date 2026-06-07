@@ -443,15 +443,20 @@ PatentsView uses JSON query syntax:
 ## ODP (Open Data Portal)
 
 ### Application Search:
-- `q` - General query string
-- `applicationNumberText` - Application number
-- `patentNumber` - Patent number
-- `inventorName` - Inventor name
-- `assigneeName` - Assignee name
-- `appFilingDate` - Filing date range
+The `odp_search_applications` tool accepts simple parameter names that are automatically mapped to ODP Lucene query fields:
+- `query` - Free-text or Lucene-style query string
+- `application_number` → `applicationNumberText`
+- `patent_number` → `applicationMetaData.patentNumber`
+- `inventor_name` → `applicationMetaData.firstInventorName`
+- `assignee_name` → `applicationMetaData.firstApplicantName`
+- `filing_date_from` / `filing_date_to` → `applicationMetaData.filingDate:[start TO end]`
+
+Multiple filters are automatically AND-ed together.
 
 ### Example:
-`q=machine learning&appFilingDate=2020-01-01,2023-12-31`
+Search for applications filed 2020-2023 by inventor "Smith" at assignee "IBM":
+- Pass: `inventor_name="Smith"`, `assignee_name="IBM"`, `filing_date_from="2020-01-01"`, `filing_date_to="2023-12-31"`
+- Generates query: `applicationMetaData.firstInventorName:"Smith" AND applicationMetaData.firstApplicantName:"IBM" AND applicationMetaData.filingDate:[2020-01-01 TO 2023-12-31]`
 
 ---
 
