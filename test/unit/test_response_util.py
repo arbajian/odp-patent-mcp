@@ -2,8 +2,8 @@
 
 import pytest
 
-from patent_mcp_server.config import config
-from patent_mcp_server.util.response import (
+from odp_patent_mcp.config import config
+from odp_patent_mcp.util.response import (
     LEAN_STRIP_FIELDS,
     ResponseEnvelope,
     check_and_truncate,

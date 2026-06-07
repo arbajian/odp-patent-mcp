@@ -248,23 +248,6 @@ STATUS_CODES = {
 
 # Data Sources Information
 DATA_SOURCES = {
-    "ppubs": {
-        "name": "USPTO Patent Public Search (PPUBS)",
-        "base_url": "https://ppubs.uspto.gov",
-        "description": "Full-text patent search with PDF downloads. Updated daily.",
-        "coverage": {
-            "patents": "All US patents from 1790 to present",
-            "applications": "All published applications from 2001 to present",
-        },
-        "rate_limits": "Undocumented, but throttled for heavy usage",
-        "auth_required": False,
-        "best_for": [
-            "Full-text patent search",
-            "PDF document downloads",
-            "Most recent filings (daily updates)",
-            "Exact patent number lookups",
-        ],
-    },
     "odp": {
         "name": "USPTO Open Data Portal (ODP)",
         "base_url": "https://api.uspto.gov",
@@ -283,101 +266,6 @@ DATA_SOURCES = {
             "Assignment/ownership records",
             "Attorney/agent information",
             "Continuity data (parent/child relationships)",
-        ],
-    },
-    "patentsview": {
-        "name": "PatentsView Patent Search API",
-        "base_url": "N/A",
-        "description": (
-            "SHUT DOWN. The PatentsView API (search.patentsview.org) was shut "
-            "down on March 20, 2026. Data has been migrated to the USPTO Open "
-            "Data Portal as bulk downloadable datasets (Granted Patent "
-            "Disambiguated Data, Pre-Grant Publication Disambiguated Data, "
-            "Long Text Data, Sorted Patent Data). Use ppubs_search_patents "
-            "for patent search, odp_search_datasets to find bulk datasets."
-        ),
-        "coverage": {
-            "patents": "Use ppubs_search_patents or ppubs_get_patent_by_number",
-            "inventors": "Bulk data via odp_search_datasets (PatentsView disambiguated data)",
-            "assignees": "Bulk data via odp_search_datasets (PatentsView disambiguated data)",
-        },
-        "rate_limits": "N/A",
-        "auth_required": False,
-        "best_for": [
-            "Patent search (UNAVAILABLE - use ppubs_search_patents)",
-            "Inventor disambiguation (UNAVAILABLE - use odp_search_datasets for bulk data)",
-            "Assignee disambiguation (UNAVAILABLE - use odp_search_datasets for bulk data)",
-            "CPC searches (UNAVAILABLE - use ppubs_search_patents with CPC query)",
-            "Patent claims/description (UNAVAILABLE - use ppubs_get_full_document)",
-        ],
-    },
-    "ptab": {
-        "name": "USPTO PTAB Trial API",
-        "base_url": "https://api.uspto.gov",
-        "description": (
-            "Live via USPTO ODP v3.0 (api.uspto.gov). Provides access to "
-            "Patent Trial and Appeal Board trial proceedings (IPR, PGR, CBM, "
-            "derivation), trial documents, trial decisions, and ex parte "
-            "appeal decisions. Requires a USPTO API key (register at data.uspto.gov)."
-        ),
-        "coverage": {
-            "proceedings": "IPR, PGR, CBM, and derivation proceedings via ptab_search_proceedings / ptab_get_proceeding / ptab_get_documents",
-            "decisions": "Trial decisions via ptab_search_decisions / ptab_get_decision (keyed by trial number)",
-            "appeals": "Ex parte appeal decisions via ptab_search_appeals / ptab_get_appeal",
-        },
-        "rate_limits": "Requires ODP API key (register at data.uspto.gov), standard rate limits apply",
-        "auth_required": True,
-        "best_for": [
-            "IPR/PGR/CBM proceeding research",
-            "PTAB decision analysis",
-            "Appeal outcomes",
-            "Patent validity challenges",
-        ],
-    },
-    "office_actions": {
-        "name": "USPTO Office Action APIs",
-        "base_url": "N/A",
-        "description": (
-            "TEMPORARILY UNAVAILABLE. Legacy endpoints at developer.uspto.gov "
-            "were decommissioned in early 2026. Migration to ODP (api.uspto.gov) "
-            "is pending. Use odp_get_documents to access office action documents "
-            "from the file wrapper as a workaround."
-        ),
-        "coverage": {
-            "applications": "Unavailable pending ODP migration",
-            "citations": "Use odp_get_documents or ppubs tools",
-            "rejections": "Use odp_get_documents to find office action documents",
-        },
-        "rate_limits": "N/A",
-        "auth_required": True,
-        "best_for": [
-            "Office action full text (UNAVAILABLE - use odp_get_documents)",
-            "Examiner citation analysis (UNAVAILABLE - use odp_get_documents)",
-            "Rejection pattern analysis (UNAVAILABLE - use odp_get_documents)",
-            "Prosecution strategy research (use odp_get_transactions instead)",
-        ],
-    },
-    "litigation": {
-        "name": "USPTO Patent Litigation API",
-        "base_url": "N/A",
-        "description": (
-            "UNAVAILABLE. The Patent Litigation API is not available on the "
-            "USPTO Open Data Portal (api.uspto.gov) and is not listed in the "
-            "ODP Swagger catalog. The OCE Patent Litigation dataset (74,000+ "
-            "district court cases) is distributed as a bulk download at "
-            "https://www.uspto.gov/ip-policy/economic-research/research-"
-            "datasets/patent-litigation-docket-reports-data."
-        ),
-        "coverage": {
-            "cases": "Unavailable via API - use OCE bulk dataset",
-            "date_range": "Unavailable via API - use OCE bulk dataset",
-        },
-        "rate_limits": "N/A",
-        "auth_required": False,
-        "best_for": [
-            "Patent litigation history (UNAVAILABLE - use OCE bulk dataset)",
-            "Company litigation profiles (UNAVAILABLE - use OCE bulk dataset)",
-            "Patent enforcement patterns (UNAVAILABLE - use OCE bulk dataset)",
         ],
     },
 }

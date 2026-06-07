@@ -21,22 +21,13 @@ class Config:
     USPTO_API_KEY: Optional[str] = os.getenv("USPTO_API_KEY")
 
     # API Endpoints
-    PPUBS_BASE_URL: str = os.getenv("PPUBS_BASE_URL", "https://ppubs.uspto.gov")
     API_BASE_URL: str = os.getenv("API_BASE_URL", "https://api.uspto.gov")
-
-    # PatentsView API - shut down March 20, 2026; data migrated to ODP bulk datasets
-    PATENTSVIEW_API_KEY: Optional[str] = os.getenv("PATENTSVIEW_API_KEY")  # Legacy - shut down March 2026
-    PATENTSVIEW_BASE_URL: str = os.getenv("PATENTSVIEW_BASE_URL", "https://search.patentsview.org")  # Legacy - shut down March 2026
-    PATENTSVIEW_RATE_LIMIT: int = int(os.getenv("PATENTSVIEW_RATE_LIMIT", "45"))  # Legacy - shut down March 2026
-
-    # Office Action API
-    OFFICE_ACTION_BASE_URL: str = os.getenv("OFFICE_ACTION_BASE_URL", "https://developer.uspto.gov")  # Legacy - decommissioned early 2026, pending ODP migration
 
     # Logging
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
     # HTTP Settings
-    USER_AGENT: str = os.getenv("USER_AGENT", "patent-mcp-server/0.9.5")
+    USER_AGENT: str = os.getenv("USER_AGENT", "odp-patent-mcp/1.0.0")
     REQUEST_TIMEOUT: float = float(os.getenv("REQUEST_TIMEOUT", "30.0"))
 
     # Rate Limiting & Retry
@@ -76,12 +67,8 @@ class Config:
         if not cls.USPTO_API_KEY:
             logger.warning(
                 "USPTO_API_KEY not set. ODP API tools (api.uspto.gov) will return 403. "
-                "Register at https://data.uspto.gov and visit 'My ODP' to get your API key. "
-                "Note: PTAB and Litigation tools do not require an API key — they are "
-                "unavailable on ODP entirely (see issue #16)."
+                "Register at https://data.uspto.gov and visit 'My ODP' to get your API key."
             )
-
-        # PatentsView API was shut down March 20, 2026 - no longer warn about missing key
 
         logger.info(f"Configuration loaded: LOG_LEVEL={cls.LOG_LEVEL}, "
                    f"TIMEOUT={cls.REQUEST_TIMEOUT}s, "

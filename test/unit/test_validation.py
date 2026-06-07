@@ -1,7 +1,7 @@
 """Unit tests for validation functions."""
 import pytest
 
-from patent_mcp_server.util.validation import validate_patent_number, validate_app_number
+from odp_patent_mcp.util.validation import validate_patent_number, validate_app_number
 
 
 # ============================================================================

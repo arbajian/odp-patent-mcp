@@ -11,7 +11,7 @@ import json
 import logging
 from typing import Any, Dict, List, Optional, Union
 
-from patent_mcp_server.config import config
+from odp_patent_mcp.config import config
 
 logger = logging.getLogger('response_util')
 

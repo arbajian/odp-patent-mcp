@@ -3,8 +3,8 @@ import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 import httpx
 
-from patent_mcp_server.uspto.api_uspto_gov import ApiUsptoClient
-from patent_mcp_server.constants import HTTPMethods
+from odp_patent_mcp.uspto.api_uspto_gov import ApiUsptoClient
+from odp_patent_mcp.constants import HTTPMethods
 from test.fixtures.api_responses import (
     MOCK_APP_RESPONSE,
     MOCK_SEARCH_APPS_RESPONSE,

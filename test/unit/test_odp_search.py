@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from patent_mcp_server.patents import odp_search_applications
+from odp_patent_mcp.server import odp_search_applications
 
 
 def _fake_upstream_response(num_records: int) -> dict:
@@ -33,7 +33,7 @@ async def test_search_post_slices_to_user_limit():
     """Upstream returns 20 records but caller asked for limit=3 → 3 returned."""
     upstream = _fake_upstream_response(20)
     with patch(
-        "patent_mcp_server.patents.api_client.make_request",
+        "odp_patent_mcp.server.api_client.make_request",
         new=AsyncMock(return_value=upstream),
     ):
         result = await odp_search_applications(query="knowledge graph", limit=3)
@@ -52,7 +52,7 @@ async def test_search_passes_through_when_upstream_under_limit():
     """If upstream already returns ≤ limit, no slicing changes anything."""
     upstream = _fake_upstream_response(2)
     with patch(
-        "patent_mcp_server.patents.api_client.make_request",
+        "odp_patent_mcp.server.api_client.make_request",
         new=AsyncMock(return_value=upstream),
     ):
         result = await odp_search_applications(query="anything", limit=10)
@@ -66,7 +66,7 @@ async def test_search_propagates_upstream_error():
     """When the API client returns an error dict, we don't try to slice it."""
     error = {"error": True, "message": "boom", "error_code": "HTTP_500"}
     with patch(
-        "patent_mcp_server.patents.api_client.make_request",
+        "odp_patent_mcp.server.api_client.make_request",
         new=AsyncMock(return_value=error),
     ):
         result = await odp_search_applications(query="anything", limit=3)
@@ -79,7 +79,7 @@ async def test_search_handles_empty_databag():
     """No patentFileWrapperDataBag in response shouldn't crash."""
     upstream = {"count": 0}
     with patch(
-        "patent_mcp_server.patents.api_client.make_request",
+        "odp_patent_mcp.server.api_client.make_request",
         new=AsyncMock(return_value=upstream),
     ):
         result = await odp_search_applications(query="nothing", limit=3)
@@ -99,7 +99,7 @@ async def test_assignee_filter_sent_as_lucene_post():
     are not quoted."""
     mock_request = AsyncMock(return_value=_fake_upstream_response(0))
     with patch(
-        "patent_mcp_server.patents.api_client.make_request",
+        "odp_patent_mcp.server.api_client.make_request",
         new=mock_request,
     ):
         await odp_search_applications(assignee_name="IBM", limit=5)
@@ -117,7 +117,7 @@ async def test_multiple_filters_are_ANDed_in_q():
     """Multiple typed filters must be AND-ed in the Lucene `q` string."""
     mock_request = AsyncMock(return_value=_fake_upstream_response(0))
     with patch(
-        "patent_mcp_server.patents.api_client.make_request",
+        "odp_patent_mcp.server.api_client.make_request",
         new=mock_request,
     ):
         await odp_search_applications(
@@ -142,7 +142,7 @@ async def test_free_text_query_is_wrapped_and_combined():
     typed filters so it doesn't accidentally bind to the wrong clause."""
     mock_request = AsyncMock(return_value=_fake_upstream_response(0))
     with patch(
-        "patent_mcp_server.patents.api_client.make_request",
+        "odp_patent_mcp.server.api_client.make_request",
         new=mock_request,
     ):
         await odp_search_applications(
@@ -163,7 +163,7 @@ async def test_quotes_in_value_are_escaped():
     Lucene query."""
     mock_request = AsyncMock(return_value=_fake_upstream_response(0))
     with patch(
-        "patent_mcp_server.patents.api_client.make_request",
+        "odp_patent_mcp.server.api_client.make_request",
         new=mock_request,
     ):
         await odp_search_applications(assignee_name='ACME "BIG" CORP', limit=5)
@@ -180,7 +180,7 @@ async def test_wildcard_values_are_not_quoted():
     search for the literal string IBM*)."""
     mock_request = AsyncMock(return_value=_fake_upstream_response(0))
     with patch(
-        "patent_mcp_server.patents.api_client.make_request",
+        "odp_patent_mcp.server.api_client.make_request",
         new=mock_request,
     ):
         await odp_search_applications(
@@ -201,7 +201,7 @@ async def test_no_filters_returns_missing_filter_error():
     tool must refuse (issue #21)."""
     mock_request = AsyncMock(return_value=_fake_upstream_response(0))
     with patch(
-        "patent_mcp_server.patents.api_client.make_request",
+        "odp_patent_mcp.server.api_client.make_request",
         new=mock_request,
     ):
         result = await odp_search_applications()
@@ -218,7 +218,7 @@ async def test_fields_parameter_included_in_request_body():
     response projection."""
     mock_request = AsyncMock(return_value=_fake_upstream_response(0))
     with patch(
-        "patent_mcp_server.patents.api_client.make_request",
+        "odp_patent_mcp.server.api_client.make_request",
         new=mock_request,
     ):
         await odp_search_applications(
@@ -246,7 +246,7 @@ async def test_fields_parameter_omitted_when_not_provided():
     fields key (preserving current behavior)."""
     mock_request = AsyncMock(return_value=_fake_upstream_response(0))
     with patch(
-        "patent_mcp_server.patents.api_client.make_request",
+        "odp_patent_mcp.server.api_client.make_request",
         new=mock_request,
     ):
         await odp_search_applications(query="test", limit=5)
@@ -263,7 +263,7 @@ async def test_empty_fields_list_omitted_from_request_body():
     the request body."""
     mock_request = AsyncMock(return_value=_fake_upstream_response(0))
     with patch(
-        "patent_mcp_server.patents.api_client.make_request",
+        "odp_patent_mcp.server.api_client.make_request",
         new=mock_request,
     ):
         await odp_search_applications(query="test", fields=[], limit=5)

@@ -22,10 +22,10 @@ from tenacity import (
     RetryError
 )
 
-from patent_mcp_server.util.logging import LoggingTransport
-from patent_mcp_server.util.errors import ApiError
-from patent_mcp_server.config import config
-from patent_mcp_server.constants import HTTPMethods, Defaults
+from odp_patent_mcp.util.logging import LoggingTransport
+from odp_patent_mcp.util.errors import ApiError
+from odp_patent_mcp.config import config
+from odp_patent_mcp.constants import HTTPMethods, Defaults
 
 # Set up logging
 logger = logging.getLogger('api_uspto_gov')

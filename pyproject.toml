@@ -3,9 +3,9 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "patent-mcp-server"
-version = "0.9.5"
-description = "Model Context Protocol server for USPTO patent data"
+name = "odp-patent-mcp"
+version = "1.0.0"
+description = "Model Context Protocol server for USPTO Open Data Portal patent data"
 readme = "README.md"
 requires-python = ">=3.10,<3.14"
 license = "MIT"
@@ -37,9 +37,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/riemannzeta/patent_mcp_server"
-Repository = "https://github.com/riemannzeta/patent_mcp_server"
-Issues = "https://github.com/riemannzeta/patent_mcp_server/issues"
+Homepage = "https://github.com/pierrearbajian/odp-patent-mcp"
+Repository = "https://github.com/pierrearbajian/odp-patent-mcp"
+Issues = "https://github.com/pierrearbajian/odp-patent-mcp/issues"
 
 [project.optional-dependencies]
 dev = [
@@ -50,10 +50,10 @@ dev = [
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = ["patent_mcp_server", "patent_mcp_server.uspto", "patent_mcp_server.util", "patent_mcp_server.patentsview"]
+packages = ["odp_patent_mcp", "odp_patent_mcp.util"]
 
 [tool.setuptools.package-data]
-patent_mcp_server = ["json/*.json"]
+odp_patent_mcp = ["json/*.json"]
 
 [dependency-groups]
 dev = [
@@ -68,4 +68,4 @@ dev = [
 ]
 
 [project.scripts]
-patent-mcp-server = "patent_mcp_server.patents:main"
+odp-patent-mcp = "odp_patent_mcp.server:main"

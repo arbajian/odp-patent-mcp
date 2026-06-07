@@ -1,7 +1,7 @@
 """Unit tests for error handling utilities."""
 import pytest
 
-from patent_mcp_server.util.errors import ApiError, is_error
+from odp_patent_mcp.util.errors import ApiError, is_error
 
 
 # ============================================================================

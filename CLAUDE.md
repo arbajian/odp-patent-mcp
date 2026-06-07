@@ -1,14 +1,14 @@
-# CLAUDE.md - Development Guidelines for USPTO Patent MCP Server
+# CLAUDE.md - Development Guidelines for ODP Patent MCP Server
 
 This file provides guidance for Claude Code and other AI assistants working on this project.
 
 ## Project Overview
 
-This is a Model Context Protocol (MCP) server that provides access to USPTO patent data through multiple APIs. The server is built with FastMCP and uses async/await patterns throughout. Published to PyPI as `patent-mcp-server`.
+This is a Model Context Protocol (MCP) server focused exclusively on the USPTO Open Data Portal (ODP) for patent research. The server is built with FastMCP and uses async/await patterns throughout. Published to PyPI as `odp-patent-mcp`.
 
-**Current state (v0.9.5):** 52 registered tools, 27 active, 25 unavailable due to API shutdowns:
-- **Active:** PPUBS (5), ODP (12), PTAB (7), Utility (3)
-- **Unavailable:** PatentsView (14, shut down March 2026), Office Actions (4, decommissioned early 2026), Enriched Citations (3, decommissioned early 2026), Litigation (4, not offered on ODP — issue #16)
+**Current state (v1.0.0):** 12 ODP tools + 8 diagnostic/resource functions:
+- **ODP Tools (12):** Application lookup (6), metadata & relationships (3), documents (1), search (2)
+- **Diagnostic/Resource Functions (8):** CPC codes, status codes, data sources, API status checks
 
 ## Critical Rules
 
@@ -18,7 +18,7 @@ This is a Model Context Protocol (MCP) server that provides access to USPTO pate
 
 ```bash
 uv run pytest
-# Expected: ~221 passed, ~44 deselected (integration tests skipped by default)
+# Expected: pass/xfail count varies; integration tests skipped by default
 ```
 
 If tests fail, fix them before committing. Do not skip or delete failing tests unless the functionality has been intentionally removed.
@@ -29,78 +29,67 @@ When publishing a new version:
 
 1. Run full test suite: `uv run pytest`
 2. Bump version in `pyproject.toml` AND `config.py` (USER_AGENT string)
-3. Commit and push to `origin/main`
+3. Commit and push to `origin/main` (or GitHub new repo)
 4. Build: `rm -rf dist/ && uv run python -m build`
 5. Publish: `uv run twine upload dist/*`
 
-### Handling Decommissioned APIs
+### Scope: ODP Only
 
-When a USPTO API is shut down, follow the established pattern (see PR #14 and the PatentsView shutdown commit):
-
-1. **Keep all tool functions** — don't remove them. Return `API_UNAVAILABLE` with workaround guidance:
-   ```python
-   return {
-       "error": True,
-       "message": "Description of what happened and what to use instead...",
-       "error_code": "API_UNAVAILABLE",
-       "workaround": "Use alternative_tool(args) for this functionality.",
-   }
-   ```
-2. **Update `check_api_status`** in `patents.py` — set `status: "UNAVAILABLE"` with a note
-3. **Update `resources.py`** — update `DATA_SOURCES` entry and fix any cross-references pointing to the now-unavailable API
-4. **Annotate client code** — add decommission notices to docstrings, keep code intact
-5. **Annotate config** — add `# Legacy` comments, remove/downgrade API key warnings in `validate()`
-6. **Add unavailability tests** in `test/unit/test_unavailable_tools.py` — both individual tests and entries in the parametrized `TestUnavailableToolErrorStructure`
-7. **Skip integration tests** — add `@pytest.mark.skip(reason="...")` to affected integration tests
-8. **Bump version** — minor version bump in `pyproject.toml` and `config.py` USER_AGENT
-
-### Test Organization
-
-- **Unit tests** (`test/unit/`): Run by default, mock external APIs
-- **Integration tests** (`test/test_tools.py`, `test/test_tools_pytest.py`): Require network access, skipped by default
-- **Unavailability tests** (`test/unit/test_unavailable_tools.py`): Verify decommissioned tools return correct error structure
-
-```bash
-# Unit tests only (default)
-uv run pytest
-
-# Integration tests (requires network + API keys)
-uv run pytest -m integration
-```
+This server is dedicated to ODP. Other data sources (PPUBS, PTAB, PatentsView, etc.) have been removed. When adding features:
+- Focus on ODP tools only
+- Don't add support for deprecated/unavailable APIs
+- If a user needs PPUBS/PTAB data, direct them to the original `patent-mcp-server` package
 
 ## Project Structure
 
 ```
-src/patent_mcp_server/
-├── patents.py              # Main server file with MCP tools, resources, and prompts
+src/odp_patent_mcp/
+├── server.py               # Main server file with all 12 ODP tools + resources
+├── __main__.py             # CLI entry point
 ├── config.py               # Configuration management (environment variables)
 ├── constants.py            # Constants and enumerations
 ├── prompts.py              # Workflow prompt templates
-├── resources.py            # Static resource data (CPC codes, status codes, data sources)
+├── resources.py            # Static resource data (CPC codes, status codes, ODP metadata)
 ├── util/
 │   ├── response.py         # Response normalization utilities
 │   ├── errors.py           # Error handling utilities
 │   ├── validation.py       # Input validation with Pydantic
 │   └── logging.py          # Logging configuration
-├── uspto/
-│   ├── ppubs_uspto_gov.py  # Patent Public Search client
-│   ├── api_uspto_gov.py    # Open Data Portal client
-│   ├── ptab_client.py      # PTAB proceedings client
-│   ├── office_action_client.py   # Legacy - decommissioned early 2026
-│   ├── enriched_citation_client.py  # Legacy - decommissioned early 2026
-│   └── litigation_client.py
-└── patentsview/
-    └── patentsview_client.py  # Legacy - shut down March 2026
+└── uspto/
+    └── api_uspto_gov.py    # Open Data Portal API client (ODP only)
 ```
+
+## ODP Tools (12)
+
+### Application Data Retrieval (6 tools)
+- `odp_get_application` — Basic application data (status, dates, prosecution stage)
+- `odp_get_application_metadata` — Detailed metadata (examiner, art unit, CPC, IPC, dates)
+- `odp_get_continuity` — Family tree (parent apps, continuations, divisionals, CIPs)
+- `odp_get_assignment` — Ownership history and current assignee
+- `odp_get_adjustment` — Patent term adjustment (PTA) for expiration calculation
+- `odp_get_attorney` — Attorney/agent of record
+
+### Prosecution & Priority (3 tools)
+- `odp_get_foreign_priority` — Foreign priority claims affecting effective filing date
+- `odp_get_transactions` — Complete prosecution timeline (office actions, responses, fees)
+- `odp_get_documents` — File wrapper document list with download links
+
+### Search & Datasets (2 tools)
+- `odp_search_applications` — Query ODP with Lucene syntax, filters, projections
+- `odp_get_dataset` — Bulk dataset details and download metadata
+- `odp_search_datasets` — Find bulk datasets by name/description
+
+### Diagnostic Tools (3 tools)
+- `check_api_status` — Verify ODP connectivity and API health
+- `get_cpc_info` / `get_status_code` — CPC and status code reference data
+- Resource functions (8) — Expose reference data for workflow context
 
 ## Code Conventions
 
 ### Function Naming
 
-- **PPUBS tools**: `ppubs_*` (e.g., `ppubs_search_patents`)
-- **ODP tools**: `odp_*` (e.g., `odp_get_application`)
-- **PTAB tools**: `ptab_*` (e.g., `ptab_search_proceedings`)
-- **PatentsView tools**: `patentsview_*` (legacy, all return API_UNAVAILABLE)
+- **ODP tools**: `odp_*` (e.g., `odp_search_applications`)
+- **Diagnostic**: `check_api_status`, `get_cpc_info`, `get_status_code`
 
 ### Parameter Naming
 
@@ -111,16 +100,13 @@ src/patent_mcp_server/
 
 ### Error Handling
 
-All tools should return a dictionary with consistent structure:
+All tools return a dictionary with consistent structure:
 ```python
 # Success
 {"success": True, "results": [...], "total": N, ...}
 
 # Error
 {"error": True, "message": "Error description", "error_code": "CODE"}
-
-# Decommissioned API
-{"error": True, "message": "...", "error_code": "API_UNAVAILABLE", "workaround": "..."}
 ```
 
 Use `ApiError.create()` for error responses.
@@ -130,17 +116,19 @@ Use `ApiError.create()` for error responses.
 All API clients use async/await:
 ```python
 async def tool_name(...) -> Dict[str, Any]:
-    async with SomeClient() as client:
-        return await client.method(...)
+    result = await api_client.make_request(url)
+    if is_error(result):
+        return result
+    return ResponseEnvelope.from_odp(result)
 ```
 
 ## Dependencies
 
 Managed via `pyproject.toml`. Key dependencies:
-- `mcp[cli]` - FastMCP server framework
-- `httpx` - Async HTTP client
-- `pydantic` - Data validation
-- `tenacity` - Retry logic
+- `mcp[cli]` — FastMCP server framework
+- `httpx` — Async HTTP client
+- `pydantic` — Data validation
+- `tenacity` — Retry logic
 
 Dev dependencies include `build` and `twine` for PyPI publishing.
 
@@ -152,8 +140,10 @@ uv sync --dev              # Install dev dependencies
 ## Configuration
 
 Environment variables are loaded from `.env` file:
-- `USPTO_API_KEY` - Required for ODP, PTAB, and Litigation tools
-- `LOG_LEVEL` - Logging verbosity (default: INFO)
+- `USPTO_API_KEY` — Required for ODP tools
+- `LOG_LEVEL` — Logging verbosity (default: INFO)
+- `MAX_RESPONSE_TOKENS` — Token limit for response truncation (default: 8000)
+- `API_BASE_URL` — ODP base URL (default: https://api.uspto.gov)
 
 See `config.py` for all options.
 
@@ -164,5 +154,5 @@ See `config.py` for all options.
 3. Use consistent error handling patterns
 4. Follow async patterns
 5. Don't introduce new dependencies without good reason
-6. When updating README.md, keep version history and tool counts current
-7. Update both `pyproject.toml` version AND `config.py` USER_AGENT on version bumps
+6. Update both `pyproject.toml` version AND `config.py` USER_AGENT on version bumps
+7. This server is ODP-only — don't add support for other USPTO data sources
