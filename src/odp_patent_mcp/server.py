@@ -599,6 +599,10 @@ async def odp_search_applications(
     Returns:
         Normalized response with matching applications.
     """
+    # Validate limit parameter (ODP API requires limit >= 1)
+    if limit < 1:
+        limit = 25  # Reset to default if user/LLM sets it to 0 or negative
+
     clauses: List[str] = []
 
     def _format_value(value: str) -> str:
