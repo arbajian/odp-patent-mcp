@@ -149,7 +149,7 @@ def get_provider(model: str) -> str:
 # =============================================================================
 
 async def call_openai_backend(client, model: str, mcp_tools, user_query: str, session):
-    """Execute the single-step flow using OpenAI-compatible backend."""
+    """Execute multi-turn tool calls using OpenAI-compatible backend."""
     openai_tools = mcp_tools_to_openai_format(mcp_tools)
 
     messages = [
@@ -166,83 +166,82 @@ async def call_openai_backend(client, model: str, mcp_tools, user_query: str, se
     ]
 
     print(f'Sending query to {model}: "{user_query}"\n')
-    first_response = client.chat.completions.create(
-        model=model,
-        messages=messages,
-        tools=openai_tools,
-        tool_choice="auto",
-    )
 
-    assistant_message = first_response.choices[0].message
-    tool_calls = assistant_message.tool_calls
+    # Multi-turn loop: keep executing tools until LLM returns final answer
+    while True:
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            tools=openai_tools,
+            tool_choice="auto",
+        )
 
-    # No tool call — just print the answer
-    if not tool_calls:
-        print("=" * 70)
-        print(f"{model} answered directly (no tool call):")
-        print("=" * 70)
-        print(assistant_message.content)
-        return
+        assistant_message = response.choices[0].message
+        tool_calls = assistant_message.tool_calls
 
-    # SINGLE-STEP: handle only the first tool call
-    tool_call = tool_calls[0]
-    tool_name = tool_call.function.name
-    raw_args_string = tool_call.function.arguments
-    tool_args = json.loads(raw_args_string)
+        # No tool call — final answer
+        if not tool_calls:
+            print("=" * 70)
+            print(f"{model}'s FINAL ANSWER:")
+            print("=" * 70)
+            print(assistant_message.content)
+            return
 
-    print("=" * 70)
-    print(f"{model} requested a TOOL CALL:")
-    print("=" * 70)
-    print(f"  Tool name : {tool_name}")
-    print("  Arguments :")
-    print(json.dumps(tool_args, indent=2))
-    print()
+        # Add assistant's response to messages
+        messages.append({
+            "role": "assistant",
+            "content": assistant_message.content,
+            "tool_calls": [
+                {
+                    "id": tc.id,
+                    "type": "function",
+                    "function": {
+                        "name": tc.function.name,
+                        "arguments": tc.function.arguments,
+                    },
+                }
+                for tc in tool_calls
+            ],
+        })
 
-    # Execute the tool
-    print(f"Executing tool '{tool_name}' on the ODP MCP server...\n")
-    tool_result = await session.call_tool(tool_name, tool_args)
+        # Execute all tool calls
+        tool_results = []
+        for tool_call in tool_calls:
+            tool_name = tool_call.function.name
+            raw_args_string = tool_call.function.arguments
+            tool_args = json.loads(raw_args_string)
 
-    raw_result_text = ""
-    for block in tool_result.content:
-        if getattr(block, "text", None) is not None:
-            raw_result_text += block.text
-        else:
-            raw_result_text += str(block)
+            print("=" * 70)
+            print(f"{model} requested: {tool_name}")
+            print("=" * 70)
+            print(f"  Arguments: {json.dumps(tool_args, indent=2)}\n")
 
-    print("=" * 70)
-    print("RAW TOOL RESULT (full, not summarized):")
-    print("=" * 70)
-    print(raw_result_text[:2000] + ("..." if len(raw_result_text) > 2000 else ""))
-    print()
+            print(f"Executing '{tool_name}' on the ODP MCP server...\n")
+            tool_result = await session.call_tool(tool_name, tool_args)
 
-    # Feed result back to the model
-    messages.append({
-        "role": "assistant",
-        "content": assistant_message.content,
-        "tool_calls": [{
-            "id": tool_call.id,
-            "type": "function",
-            "function": {
-                "name": tool_name,
-                "arguments": raw_args_string,
-            },
-        }],
-    })
-    messages.append({
-        "role": "tool",
-        "tool_call_id": tool_call.id,
-        "content": raw_result_text,
-    })
+            raw_result_text = ""
+            for block in tool_result.content:
+                if getattr(block, "text", None) is not None:
+                    raw_result_text += block.text
+                else:
+                    raw_result_text += str(block)
 
-    final_response = client.chat.completions.create(
-        model=model,
-        messages=messages,
-    )
+            print("Result received (truncated):")
+            print(raw_result_text[:1000] + ("..." if len(raw_result_text) > 1000 else ""))
+            print()
 
-    print("=" * 70)
-    print(f"{model}'s FINAL ANSWER (after seeing the tool result):")
-    print("=" * 70)
-    print(final_response.choices[0].message.content)
+            tool_results.append({
+                "tool_call_id": tool_call.id,
+                "content": raw_result_text,
+            })
+
+        # Add tool results to messages
+        for result in tool_results:
+            messages.append({
+                "role": "tool",
+                "tool_call_id": result["tool_call_id"],
+                "content": result["content"],
+            })
 
 
 # =============================================================================
@@ -250,7 +249,7 @@ async def call_openai_backend(client, model: str, mcp_tools, user_query: str, se
 # =============================================================================
 
 async def call_anthropic_backend(client, model: str, mcp_tools, user_query: str, session):
-    """Execute the single-step flow using Anthropic backend."""
+    """Execute multi-turn tool calls using Anthropic backend."""
     anthropic_tools = mcp_tools_to_anthropic_format(mcp_tools)
 
     messages = [
@@ -267,86 +266,84 @@ async def call_anthropic_backend(client, model: str, mcp_tools, user_query: str,
     ]
 
     print(f'Sending query to {model}: "{user_query}"\n')
-    first_response = client.messages.create(
-        model=model,
-        max_tokens=2048,
-        tools=anthropic_tools,
-        messages=messages,
-    )
 
-    # Look for tool_use blocks in the response
-    tool_use_block = None
-    for block in first_response.content:
-        if hasattr(block, "type") and block.type == "tool_use":
-            tool_use_block = block
-            break
+    # Multi-turn loop: keep executing tools until Claude returns final answer
+    while True:
+        response = client.messages.create(
+            model=model,
+            max_tokens=2048,
+            tools=anthropic_tools,
+            messages=messages,
+        )
 
-    # No tool call — just print the answer
-    if not tool_use_block:
-        print("=" * 70)
-        print(f"{model} answered directly (no tool call):")
-        print("=" * 70)
-        for block in first_response.content:
-            if hasattr(block, "text"):
-                print(block.text)
-        return
+        # Look for tool_use blocks in the response
+        tool_use_blocks = []
+        text_blocks = []
+        for block in response.content:
+            if hasattr(block, "type") and block.type == "tool_use":
+                tool_use_blocks.append(block)
+            elif hasattr(block, "type") and block.type == "text":
+                text_blocks.append(block)
 
-    # Extract tool info from tool_use block
-    tool_name = tool_use_block.name
-    tool_args = tool_use_block.input
-    tool_use_id = tool_use_block.id
+        # No tool calls — final answer
+        if not tool_use_blocks:
+            print("=" * 70)
+            print(f"{model}'s FINAL ANSWER:")
+            print("=" * 70)
+            for block in response.content:
+                if hasattr(block, "text"):
+                    print(block.text)
+            return
 
-    print("=" * 70)
-    print(f"{model} requested a TOOL CALL:")
-    print("=" * 70)
-    print(f"  Tool name : {tool_name}")
-    print("  Arguments :")
-    print(json.dumps(tool_args, indent=2))
-    print()
+        # Add assistant's response to messages
+        messages.append({
+            "role": "assistant",
+            "content": response.content,
+        })
 
-    # Execute the tool
-    print(f"Executing tool '{tool_name}' on the ODP MCP server...\n")
-    tool_result = await session.call_tool(tool_name, tool_args)
+        # Execute all tool calls
+        tool_results = []
+        for tool_use_block in tool_use_blocks:
+            tool_name = tool_use_block.name
+            tool_args = tool_use_block.input
+            tool_use_id = tool_use_block.id
 
-    raw_result_text = ""
-    for block in tool_result.content:
-        if getattr(block, "text", None) is not None:
-            raw_result_text += block.text
-        else:
-            raw_result_text += str(block)
+            print("=" * 70)
+            print(f"{model} requested: {tool_name}")
+            print("=" * 70)
+            print(f"  Arguments: {json.dumps(tool_args, indent=2)}\n")
 
-    print("=" * 70)
-    print("RAW TOOL RESULT (full, not summarized):")
-    print("=" * 70)
-    print(raw_result_text[:2000] + ("..." if len(raw_result_text) > 2000 else ""))
-    print()
+            print(f"Executing '{tool_name}' on the ODP MCP server...\n")
+            tool_result = await session.call_tool(tool_name, tool_args)
 
-    # Feed result back to the model (Anthropic format)
-    messages.append({
-        "role": "assistant",
-        "content": first_response.content,
-    })
-    messages.append({
-        "role": "user",
-        "content": [{
-            "type": "tool_result",
-            "tool_use_id": tool_use_id,
-            "content": raw_result_text,
-        }],
-    })
+            raw_result_text = ""
+            for block in tool_result.content:
+                if getattr(block, "text", None) is not None:
+                    raw_result_text += block.text
+                else:
+                    raw_result_text += str(block)
 
-    final_response = client.messages.create(
-        model=model,
-        max_tokens=2048,
-        messages=messages,
-    )
+            print("Result received (truncated):")
+            print(raw_result_text[:1000] + ("..." if len(raw_result_text) > 1000 else ""))
+            print()
 
-    print("=" * 70)
-    print(f"{model}'s FINAL ANSWER (after seeing the tool result):")
-    print("=" * 70)
-    for block in final_response.content:
-        if hasattr(block, "text"):
-            print(block.text)
+            tool_results.append({
+                "tool_use_id": tool_use_id,
+                "content": raw_result_text,
+            })
+
+        # Add tool results to messages
+        messages.append({
+            "role": "user",
+            "content": [
+                {
+                    "type": "tool_result",
+                    "tool_use_id": result["tool_use_id"],
+                    "content": result["content"],
+                }
+                for result in tool_results
+            ],
+        })
 
 
 # =============================================================================
