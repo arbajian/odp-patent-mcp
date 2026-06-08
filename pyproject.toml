@@ -57,8 +57,10 @@ odp_patent_mcp = ["json/*.json"]
 
 [dependency-groups]
 dev = [
+    "anthropic>=0.28.0",       # For Claude API testing
     "build>=1.3.0",
     "jaraco-context>=6.1.0", # CVE-2026-23949 fix
+    "openai>=1.45.0",          # For DeepSeek/OpenAI API testing
     "pip-audit>=2.10.0",
     "pytest>=9.0.3",          # CVE-2025-71176 fix
     "pytest-asyncio>=1.0.0",
