@@ -1,0 +1,476 @@
+﻿section_id: DATA_DICTIONARY
+assembly_role: base_instructions[2/5]
+assembly_order: context_start -> data_dictionary -> api_doc -> examples -> request_intro
+full_context_label: BASE INSTRUCTIONS (system prompt)
+
+version: 4-20-2026
+comments: Canonical field list with synonyms; aligned with api_doc/examples/request_close
+
+content:
+DATA_DICTIONARY with Synonyms
+
+Canonical usage notes:
+- Use only field paths listed in this dictionary.
+- Synonyms are for mapping user language to field paths.
+- Do not auto-add fields when the user did not request them.
+- Prefer `applicationMetaData.entityStatusData.businessEntityStatusCategory` for entity status filtering.
+- Use exact-match values for enum/code fields unless a rule explicitly allows wildcards.
+- Put numeric/date ranges in `rangeFilters` (not enumerated lists in `filters`).
+	1	patentFileWrapperDataBag.applicationNumberText 
+	-	Type: String  
+	-	Description: -The unique number assigned by the USPTO to a patent application when it is filed.-  
+	-	Synonyms: application number, app number, patent app ID, filing number, USPTO number
+	2	grantDocumentMetaData.productIdentifier  
+	-	Type: String  
+	-	Description: -Product identifier.-  
+	-	Synonyms: product ID, item identifier, grant ID
+	3	grantDocumentMetaData.zipFileName  
+	-	Type: String  
+	-	Description: -Zip file name.-  
+	-	Synonyms: zip name, archive name, compressed file name
+	4	grantDocumentMetaData.fileCreateDateTime  
+	-	Type: Date  
+	-	Description: -The date the file was created.-  
+	-	Synonyms: creation date, file date, made on, generated date
+	5	grantDocumentMetaData.xmlFileName  
+	-	Type: String  
+	-	Description: -XML file name.-  
+	-	Synonyms: XML name, markup file name, data file name
+	6	grantDocumentMetaData.fileLocationURI  
+	-	Type: String  
+	-	Description: -File location URI.-  
+	-	Synonyms: file URL, location link, URI, file path
+	7	eventDataBag.eventCode  
+	-	Type: String  
+	-	Description: -Unique reference for an application/patent transaction.-  
+	-	Synonyms: event ID, transaction code, action code, reference code
+	8	eventDataBag.eventDescriptionText  
+	-	Type: String  
+	-	Description: -Description of the transaction-s code.-  
+	-	Synonyms: event details, transaction description, action text, code explanation
+	9	eventDataBag.eventDate  
+	-	Type: Date  
+	-	Description: -The date the patent case action was recorded.-  
+	-	Synonyms: event date, action date, recorded date, transaction date
+	10	applicationMetaData.firstInventorToFileIndicator  
+	-	Type: String  
+	-	Description: -The first inventor to file (First Inventor to File-FITF) provision of the America Invents Act.-  
+	-	Synonyms: FITF indicator, first to file flag, AIA indicator, inventor priority
+	11	applicationMetaData.applicationStatusCode  
+	-	Type: String  
+	-	Description: -Classifies the application by its status relative to the total application process. AKA 'application status'-  
+	-	Synonyms: status code, app status, process stage, application stage
+	12	applicationMetaData.applicationTypeCode  
+	-	Type: Number  
+	-	Description: -Value indicating if the patent application is domestic at the National Stage or submitted as a PCT.-  
+	-	Synonyms: type code, app type ID, category code, patent type number
+	13	applicationMetaData.entityStatusData.smallEntityStatusIndicator  
+	-	Type: Boolean  
+	-	Description: -Small entity status indicator.-  
+	-	Synonyms: small entity flag, entity indicator, size status, small business flag
+	14	applicationMetaData.entityStatusData.businessEntityStatusCategory  
+	-	Type: String  
+	-	Description: -Large or small entity payment status of the application.-  
+	-	Synonyms: entity category, business size, payment status, entity type
+	15	applicationMetaData.filingDate  
+	-	Type: Date  
+	-	Description: -Date on which a patent application was filed and received in the USPTO.-  
+	-	Synonyms: file date, submission date, received date, application date
+	16	applicationMetaData.uspcSymbolText  
+	-	Type: String  
+	-	Description: -USPTO classification symbol text.-  
+	-	Synonyms: USPC code, classification code, patent class symbol, category symbol
+	17	applicationMetaData.nationalStageIndicator  
+	-	Type: Boolean  
+	-	Description: -National Stage indicator.-  
+	-	Synonyms: national stage flag, PCT indicator, domestic stage flag
+	18	applicationMetaData.firstInventorName  
+	-	Type: String  
+	-	Description: -Name of the inventor with Rank One. Listed as first inventor in the patent application.-  
+	-	Synonyms: primary inventor, lead inventor, first inventor, top inventor name
+	19	applicationMetaData.cpcClassificationBag  
+	-	Type: String  
+	-	Description: -All the CPCs associated to application.-  
+	-	Synonyms: CPC codes, classification codes, patent categories, cooperative patent classes
+	20	applicationMetaData.effectiveFilingDate  
+	-	Type: Date  
+	-	Description: -The date the patent case qualified as having been 'filed' (can be later than the filing date).-  
+	-	Synonyms: effective date, qualified filing date, official filing date
+	21	applicationMetaData.publicationDateBag  
+	-	Type: Object  
+	-	Description: -Bag/structure containing publication date details.-  
+	-	Synonyms: pub date details, publication info, release date bag
+	22	applicationMetaData.publicationSequenceNumberBag  
+	-	Type: String  
+	-	Description: -Contains a number assigned to the publication of patent applications filed on or after November 29, 2000.-  
+	-	Synonyms: pub sequence number, publication ID, release number
+	23	applicationMetaData.earliestPublicationDate  
+	-	Type: Date  
+	-	Description: -Earliest publication date.-  
+	-	Synonyms: first pub date, initial release date, earliest release
+	24	applicationMetaData.applicationTypeLabelName  
+	-	Type: String (FIXED ENUM — no wildcards, no case variations)  
+	-	Description: -Label for the application type. MUST use exact canonical values only: "Design", "Utility", "Plant", "Provisional", "Re-Issue". Rule 8 (wildcard + case variations) does NOT apply to this field.-  
+	-	Synonyms: app type name, type label, patent type, category name
+	-	Canonical values: "Design" | "Utility" | "Plant" | "Provisional" | "Re-Issue"
+	25	applicationMetaData.applicationStatusDate  
+	-	Type: Date  
+	-	Description: -Application status date.-  
+	-	Synonyms: status date, stage date, update date
+	26	applicationMetaData.class  
+	-	Type: String  
+	-	Description: -Second hierarchical level in the classification scheme.-  
+	-	Synonyms: patent class, classification, category level, class code
+	27	applicationMetaData.applicationTypeCategory  
+	-	Type: String  
+	-	Description: -Category of the application.-  
+	-	Synonyms: app category, type category, patent kind, application class
+	28	applicationMetaData.inventorBag.firstName  
+	-	Type: String  
+	-	Description: -Inventor-s first name.-  
+	-	Synonyms: inventor given name, first name, creator first
+	29	applicationMetaData.inventorBag.lastName  
+	-	Type: String  
+	-	Description: -Inventor-s last name.-  
+	-	Synonyms: inventor surname, last name, creator last
+	30	applicationMetaData.inventorBag.countryCode  
+	-	Type: String  
+	-	Description: -Country code. AKA 'inventor country code' if the user asks for inventor country code use this field-  
+	-	Synonyms: inventor country, country ID, nation code, origin code
+	31	applicationMetaData.inventorBag.inventorNameText  
+	-	Type: String  
+	-	Description: -Inventor Name.-  
+	-	Synonyms: full inventor name, inventor, creator name
+	32	applicationMetaData.inventorBag.correspondenceAddressBag.cityName  
+	-	Type: String  
+	-	Description: -City Name.-  
+	-	Synonyms: city, inventor city, address city
+	33	applicationMetaData.inventorBag.correspondenceAddressBag.geographicRegionName  
+	-	Type: String  
+	-	Description: -Geographic region name, e.g. state.-  
+	-	Synonyms: region, state, province, area name
+	34	applicationMetaData.inventorBag.correspondenceAddressBag.geographicRegionCode  
+	-	Type: String  
+	-	Description: -Geographic region code.-  
+	-	Synonyms: region code, state code, area code
+	35	applicationMetaData.inventorBag.correspondenceAddressBag.countryCode  
+	-	Type: String  
+	-	Description: -Country code.-  
+	-	Synonyms: nation code, country ID, address country code
+	36	applicationMetaData.inventorBag.correspondenceAddressBag.nameLineOneText  
+	-	Type: String  
+	-	Description: -First line of name associated with correspondence address.-  
+	-	Synonyms: name line 1, address name, first name line
+	37	applicationMetaData.inventorBag.correspondenceAddressBag.countryName  
+	-	Type: String  
+	-	Description: -Country name. also known as inventor country-  
+	-	Synonyms: country, nation, inventor nation, origin
+	38	applicationMetaData.inventorBag.correspondenceAddressBag.postalAddressCategory  
+	-	Type: String  
+	-	Description: -Postal address category.-  
+	-	Synonyms: address type, postal type, mail category
+	39	applicationMetaData.inventorBag.correspondenceAddressBag.postalCode  
+	-	Type: String  
+	-	Description: -Postal code.-  
+	-	Synonyms: zip code, postcode, mail code
+	40	applicationMetaData.applicationStatusDescriptionText  
+	-	Type: String  
+	-	Description: -Status of the application (e.g. new = new application).-  
+	-	Synonyms: status text, app status description, stage description
+	41	applicationMetaData.patentNumber  
+	-	Type: String  
+	-	Description: -Unique number assigned by the USPTO to a granted/issued patent.-  
+	-	Synonyms: patent ID, grant number, issued number
+	42	applicationMetaData.grantDate  
+	-	Type: Date  
+	-	Description: -The date a patent was granted.-  
+	-	Synonyms: issue date, grant date, awarded date
+	43	applicationMetaData.applicantBag.applicantNameText  
+	-	Type: String  
+	-	Description: -Applicant-s name text.-  
+	-	Synonyms: applicant name, filer name, submitter name
+	44	applicationMetaData.applicantBag.correspondenceAddressBag.cityName  
+	-	Type: String  
+	-	Description: -City Name.-  
+	-	Synonyms: applicant city, city, address city
+	45	applicationMetaData.applicantBag.correspondenceAddressBag.geographicRegionName  
+	-	Type: String  
+	-	Description: -Geographic region name, e.g. state.-  
+	-	Synonyms: region, state, province, applicant region
+	46	applicationMetaData.applicantBag.correspondenceAddressBag.geographicRegionCode  
+	-	Type: String  
+	-	Description: -Geographic region code.-  
+	-	Synonyms: region code, state code, area code
+	47	applicationMetaData.applicantBag.correspondenceAddressBag.countryCode  
+	-	Type: String  
+	-	Description: -Country code.-  
+	-	Synonyms: nation code, country ID, applicant country code
+	48	applicationMetaData.applicantBag.correspondenceAddressBag.postalCode  
+	-	Type: String  
+	-	Description: -Postal Code.-  
+	-	Synonyms: zip code, postcode, applicant postal code
+	49	applicationMetaData.applicantBag.correspondenceAddressBag.countryName  
+	-	Type: String  
+	-	Description: -Country name.-  
+	-	Synonyms: country, nation, applicant country
+	50	applicationMetaData.applicantBag.correspondenceAddressBag.addressLineOneText  
+	-	Type: String  
+	-	Description: -First line of address associated with correspondence address.-  
+	-	Synonyms: address line 1, first address line, street
+	51	applicationMetaData.applicantBag.correspondenceAddressBag.postalAddressCategory  
+	-	Type: String  
+	-	Description: -Postal address category.-  
+	-	Synonyms: address type, postal type, mail category
+	52	applicationMetaData.firstApplicantName  
+	-	Type: String  
+	-	Description: -Name of the Applicant with Rank One. Listed as first applicant in the patent application.-  
+	-	Synonyms: primary applicant, lead applicant, first filer
+	53	applicationMetaData.customerNumber  
+	-	Type: Number  
+	-	Description: -Correspondence Address of the application inherited from the Customer.-  
+	-	Synonyms: customer ID, client number, account number
+	54	applicationMetaData.groupArtUnitNumber  
+	-	Type: String  
+	-	Description: -A four-digit identifier for a -group art unit,- which handles related patent art.-  
+	-	Synonyms: art unit, group ID, examiner group number
+	55	applicationMetaData.earliestPublicationNumber  
+	-	Type: String  
+	-	Description: -Earliest publication number.-  
+	-	Synonyms: first pub number, initial pub ID, release number
+	56	applicationMetaData.inventionTitle  
+	-	Type: String  
+	-	Description: -Title of the invention/application.-  
+	-	Synonyms: invention name, patent title, app title
+	57	applicationMetaData.applicationConfirmationNumber  
+	-	Type: Number  
+	-	Description: -A four-digit number assigned to each newly filed patent application. Used with the application number on correspondence.-  
+	-	Synonyms: confirmation number, app confirmation, filing confirmation
+	58	applicationMetaData.examinerNameText  
+	-	Type: String  
+	-	Description: -Name of the patent examiner with signatory authority.-  
+	-	Synonyms: examiner name, reviewer name, patent officer
+	59	applicationMetaData.subclass  
+	-	Type: String  
+	-	Description: -Third highest hierarchical level in the classification scheme.-  
+	-	Synonyms: subclass code, sub-category, detailed class
+	60	applicationMetaData.publicationCategoryBag  
+	-	Type: String  
+	-	Description: -Publication category (or categories).-  
+	-	Synonyms: pub category, release type, publication kind
+	61	applicationMetaData.docketNumber  
+	-	Type: String  
+	-	Description: -An identifier assigned by a non-USPTO interest to an application/patent case (optional for the customer).-  
+	-	Synonyms: docket ID, case number, file number
+	62	parentContinuityBag.parentApplicationStatusCode  
+	-	Type: Number  
+	-	Description: -Status code of the parent application.-  
+	-	Synonyms: parent status ID, prior app status, parent stage code
+	63	parentContinuityBag.firstInventorToFileIndicator  
+	-	Type: Boolean  
+	-	Description: -America Invents Act indicator, first inventor to file.-  
+	-	Synonyms: parent FITF, prior AIA flag, first to file parent
+	64	parentContinuityBag.claimParentageTypeCode  
+	-	Type: String  
+	-	Description: -Code describing the claim parentage type.-  
+	-	Synonyms: parentage code, claim type, lineage code
+	65	parentContinuityBag.claimParentageTypeCodeDescriptionText  
+	-	Type: String  
+	-	Description: -Description of claim parentage type code.-  
+	-	Synonyms: parentage description, claim type text, lineage details
+	66	parentContinuityBag.parentApplicationStatusDescriptionText  
+	-	Type: String  
+	-	Description: -Status of the parent or child application (new, patented, etc.). applicationStatusDescriptionText-  
+	-	Synonyms: parent status text, prior app status, parent stage
+	67	parentContinuityBag.parentApplicationNumberText  
+	-	Type: String  
+	-	Description: -Application number of the parent application.-  
+	-	Synonyms: parent app number, prior app ID, parent filing number
+	68	parentContinuityBag.parentApplicationFilingDate  
+	-	Type: Date  
+	-	Description: -Filing date of the parent application.-  
+	-	Synonyms: parent filing date, prior file date, parent submission date
+	69	parentContinuityBag.childApplicationNumberText  
+	-	Type: String  
+	-	Description: -Application number of the child application.-  
+	-	Synonyms: child app number, subsequent app ID, child filing number
+	70	parentContinuityBag.parentPatentNumber  
+	-	Type: String  
+	-	Description: -Number that uniquely identifies an issued patent (parent).-  
+	-	Synonyms: parent patent ID, prior grant number, parent issued number
+	71	patentTermAdjustmentData.applicantDayDelayQuantity  
+	-	Type: Number  
+	-	Description: -Delays due to applicant failure to engage in reasonable efforts.-  
+	-	Synonyms: applicant delay, filer delay days, applicant holdup
+	72	patentTermAdjustmentData.overlappingDayQuantity  
+	-	Type: Number  
+	-	Description: -Number of overlapping days of USPTO delays.-  
+	-	Synonyms: overlap days, concurrent delay, USPTO overlap
+	73	patentTermAdjustmentData.filingDate  
+	-	Type: Date  
+	-	Description: -The USPTO filing date used for PTA calculations.-  
+	-	Synonyms: PTA filing date, adjustment file date, calculation date
+	74	patentTermAdjustmentData.ipOfficeAdjustmentDelayQuantity  
+	-	Type: Number  
+	-	Description: -USPTO personnel adjustment (+/-) to the total PTA calculation.-  
+	-	Synonyms: office adjustment, USPTO tweak, delay adjustment
+	75	patentTermAdjustmentData.cDelayQuantity  
+	-	Type: Number  
+	-	Description: -Delays caused by interference proceedings, secrecy orders, or appellate review.-  
+	-	Synonyms: C delay, interference delay, review delay
+	76	patentTermAdjustmentData.adjustmentTotalQuantity  
+	-	Type: Number  
+	-	Description: -Summation of non-overlapping USPTO delays minus applicant delays.-  
+	-	Synonyms: total adjustment, net delay, final PTA
+	77	patentTermAdjustmentData.bDelayQuantity  
+	-	Type: Number  
+	-	Description: -Delays when the patent fails to issue within three years from its filing date.-  
+	-	Synonyms: B delay, 3-year delay, issuance delay
+	78	patentTermAdjustmentData.grantDate  
+	-	Type: Date  
+	-	Description: -Date on which the patent application was granted.-  
+	-	Synonyms: PTA grant date, issue date, award date
+	79	patentTermAdjustmentData.aDelayQuantity  
+	-	Type: Number  
+	-	Description: -Adjustments based on USPTO delays under 35 U.S.C. - 154(b)(1)(A)(i)-(iv).-  
+	-	Synonyms: A delay, USPTO delay, office delay
+	80	patentTermAdjustmentData.ipOfficeDayDelayQuantity  
+	-	Type: Number  
+	-	Description: -USPTO personnel adjustment (+/-) to the total PTA calculation.-  
+	-	Synonyms: office delay days, USPTO adjustment, delay tweak
+	81	patentTermAdjustmentData.patentTermAdjustmentHistoryDataBag.eventDescriptionText  
+	-	Type: String  
+	-	Description: -PTA/PTE event description text.-  
+	-	Synonyms: PTA event text, adjustment event, delay description
+	82	patentTermAdjustmentData.patentTermAdjustmentHistoryDataBag.eventSequenceNumber  
+	-	Type: Number  
+	-	Description: -PTA event sequence number.-  
+	-	Synonyms: PTA sequence, event order, adjustment number
+	83	patentTermAdjustmentData.patentTermAdjustmentHistoryDataBag.originatingEventSequenceNumber  
+	-	Type: Number  
+	-	Description: -PTA originating event sequence number.-  
+	-	Synonyms: origin sequence, starting event number, initial order
+	84	patentTermAdjustmentData.patentTermAdjustmentHistoryDataBag.ptaPteCode  
+	-	Type: String  
+	-	Description: -PTA/PTE code.-  
+	-	Synonyms: PTA code, adjustment code, delay code
+	85	patentTermAdjustmentData.patentTermAdjustmentHistoryDataBag.eventDate  
+	-	Type: Date  
+	-	Description: -PTA event date.-  
+	-	Synonyms: PTA event date, adjustment date, delay date
+	86	assignmentBag.assignmentReceivedDate  
+	-	Type: Date  
+	-	Description: -The date an assignment was received.-  
+	-	Synonyms: received date, assignment date, transfer receipt
+	87	assignmentBag.assignorBag.executionDate  
+	-	Type: Date  
+	-	Description: -The date the assignment was executed.-  
+	-	Synonyms: execution date, signed date, transfer date
+	88	assignmentBag.assignorBag.assignorName  
+	-	Type: String  
+	-	Description: -Name of the party transferring its interest/right to the patent.-  
+	-	Synonyms: assignor, transferor, seller name, original owner
+	89	assignmentBag.frameNumber  
+	-	Type: String  
+	-	Description: -1-4 digit frame number for locating the first image of the assignment on microfilm.-  
+	-	Synonyms: frame ID, microfilm frame, image number
+	90	assignmentBag.pageNumber  
+	-	Type: Number  
+	-	Description: -Total page count of the assignment on microfilm.-  
+	-	Synonyms: page count, assignment pages, document length
+	91	assignmentBag.reelAndFrameNumber  
+	-	Type: String  
+	-	Description: -Reel number / frame number combination used to locate the assignment on microfilm.-  
+	-	Synonyms: reel-frame, microfilm ID, film location
+	92	assignmentBag.assignmentDocumentLocationURI  
+	-	Type: String  
+	-	Description: -Assignment document location URI.-  
+	-	Synonyms: assignment URL, doc link, transfer file path
+	93	assignmentBag.assignmentRecordedDate  
+	-	Type: Date  
+	-	Description: -When the assignment was recorded in the USPTO.-  
+	-	Synonyms: recorded date, USPTO record date, assignment log date
+	94	assignmentBag.conveyanceText  
+	-	Type: String  
+	-	Description: -Textual description of the interest conveyed.-  
+	-	Synonyms: conveyance details, transfer text, assignment description
+	95	assignmentBag.assigneeBag.assigneeAddress.cityName  
+	-	Type: String  
+	-	Description: -City.-  
+	-	Synonyms: assignee city, city, new owner city
+	96	assignmentBag.assigneeBag.assigneeAddress.geographicRegionCode  
+	-	Type: String  
+	-	Description: -Geographic region code.-  
+	-	Synonyms: region code, state code, assignee area code
+	97	assignmentBag.assigneeBag.assigneeAddress.postalCode  
+	-	Type: String  
+	-	Description: -Postal code.-  
+	-	Synonyms: zip code, postcode, assignee postal
+	98	assignmentBag.assigneeBag.assigneeAddress.addressLineOneText  
+	-	Type: String  
+	-	Description: -First line of address.-  
+	-	Synonyms: address line 1, street, assignee street
+	99	assignmentBag.assigneeBag.assigneeNameText  
+	-	Type: String  
+	-	Description: -Person or entity that has the property rights to the patent.-  
+	-	Synonyms: assignee, new owner, buyer name, patent holder
+	100	assignmentBag.assignmentMailedDate-- Type: Date-- Description: -When the assignment request was mailed or received.--- Synonyms: mailed date, sent date, assignment submission date  
+	101	assignmentBag.reelNumber-- Type: String-- Description: -1-6 digit reel number for locating the assignment on microfilm.--- Synonyms: reel ID, film number, microfilm reel  
+	102	assignmentBag.correspondenceAddressBag.addressLineOneText-- Type: String-- Description: -First line of address associated with correspondence address.--- Synonyms: address line 1, street, correspondence street  
+	103	assignmentBag.correspondenceAddressBag.correspondentNameText-- Type: String-- Description: -The name of the correspondent.--- Synonyms: correspondent, contact name, liaison name  
+	104	assignmentBag.correspondenceAddressBag.addressLineTwoText-- Type: String-- Description: -Second line of address associated with correspondence address, if applicable.--- Synonyms: address line 2, second address, additional address  
+	105	pgpubDocumentMetaData.productIdentifier-- Type: String-- Description: -Product identifier.--- Synonyms: pub product ID, publication ID, item identifier  
+	106	pgpubDocumentMetaData.zipFileName-- Type: String-- Description: -Zip file name.--- Synonyms: pub zip name, archive name, compressed file  
+	107	pgpubDocumentMetaData.fileCreateDateTime-- Type: Date-- Description: -The date the file was created.--- Synonyms: pub creation date, file date, generated date  
+	108	pgpubDocumentMetaData.xmlFileName-- Type: String-- Description: -XML file name.--- Synonyms: pub XML name, markup file, data file name  
+	109	pgpubDocumentMetaData.fileLocationURI-- Type: String-- Description: -File location URI.--- Synonyms: pub file URL, location link, URI path  
+	110	childContinuityBag.firstInventorToFileIndicator-- Type: Boolean-- Description: -AIA indicator, first inventor to file.--- Synonyms: child FITF, AIA flag, first to file child  
+	111	childContinuityBag.childApplicationStatusDescriptionText-- Type: String-- Description: -Status of the parent or child application (new, patented case, etc.).--- Synonyms: child status text, subsequent status, child stage  
+	112	childContinuityBag.claimParentageTypeCode-- Type: String-- Description: -Claim parentage type code.--- Synonyms: child parentage code, claim type, lineage code  
+	113	childContinuityBag.childApplicationStatusCode-- Type: String-- Description: -Status code of the child application.--- Synonyms: child status ID, subsequent stage code, child app status  
+	114	childContinuityBag.claimParentageTypeCodeDescriptionText-- Type: String-- Description: -Description of claim parentage type code.--- Synonyms: child parentage text, claim type details, lineage description  
+	115	childContinuityBag.parentApplicationNumberText-- Type: String-- Description: -Parent application number for this child.--- Synonyms: parent app ID, prior app number, linked parent number  
+	116	childContinuityBag.childApplicationFilingDate-- Type: Date-- Description: -Filing date of the child application.--- Synonyms: child filing date, subsequent file date, child submission  
+	117	childContinuityBag.childApplicationNumberText-- Type: String-- Description: -Child application number, unique value assigned by the USPTO.--- Synonyms: child app number, subsequent app ID, child filing number  
+	118	lastIngestionDateTime-- Type: Date/DateTime-- Description: -Timestamp for the last ingestion.--- Synonyms: last update, ingestion date, latest entry  
+	119	recordAttorney.powerOfAttorneyBag.activeIndicator-- Type: Boolean-- Description: -Whether the attorney is active or inactive.--- Synonyms: attorney status, active flag, lawyer status  
+	120	recordAttorney.powerOfAttorneyBag.firstName-- Type: String-- Description: -Attorney-s first name.--- Synonyms: attorney given name, lawyer first, first name  
+	121	recordAttorney.powerOfAttorneyBag.lastName-- Type: String-- Description: -Attorney-s last name.--- Synonyms: attorney surname, lawyer last, last name  
+	122	recordAttorney.powerOfAttorneyBag.registrationNumber-- Type: Number-- Description: -Attorney-s registration number.--- Synonyms: attorney ID, reg number, lawyer registration  
+	123	recordAttorney.powerOfAttorneyBag.attorneyAddressBag.cityName-- Type: String-- Description: -City name.--- Synonyms: attorney city, city, lawyer city  
+	124	recordAttorney.powerOfAttorneyBag.attorneyAddressBag.geographicRegionName-- Type: String-- Description: -Geographic region name.--- Synonyms: region, state, attorney state  
+	125	recordAttorney.powerOfAttorneyBag.attorneyAddressBag.geographicRegionCode-- Type: String-- Description: -Geographic region code.--- Synonyms: region code, state code, attorney area code  
+	126	recordAttorney.powerOfAttorneyBag.attorneyAddressBag.countryCode-- Type: String-- Description: -Country code.--- Synonyms: nation code, country ID, attorney country code  
+	127	recordAttorney.powerOfAttorneyBag.attorneyAddressBag.postalCode-- Type: String-- Description: -Postal code.--- Synonyms: zip code, postcode, attorney postal  
+	128	recordAttorney.powerOfAttorneyBag.attorneyAddressBag.nameLineOneText-- Type: String-- Description: -First line of name for attorney/agent correspondence.--- Synonyms: name line 1, attorney name, first name line  
+	129	recordAttorney.powerOfAttorneyBag.attorneyAddressBag.countryName-- Type: String-- Description: -Country name.--- Synonyms: country, nation, attorney country  
+	130	recordAttorney.powerOfAttorneyBag.attorneyAddressBag.addressLineOneText-- Type: String-- Description: -First line of the address.--- Synonyms: address line 1, street, attorney street  
+	131	recordAttorney.powerOfAttorneyBag.attorneyAddressBag.addressLineTwoText-- Type: String-- Description: -Second line of the address.--- Synonyms: address line 2, second address, lawyer address 2  
+	132	recordAttorney.powerOfAttorneyBag.telecommunicationAddressBag.telecommunicationNumber-- Type: String-- Description: -Phone number (or similar) for the attorney/agent.--- Synonyms: phone, contact number, attorney phone  
+	133	recordAttorney.powerOfAttorneyBag.telecommunicationAddressBag.telecomTypeCode-- Type: String-- Description: -Type/category of phone/telecom number.--- Synonyms: phone type, telecom category, contact type  
+	134	recordAttorney.powerOfAttorneyBag.registeredPractitionerCategory-- Type: String-- Description: -Registered practitioner category.--- Synonyms: practitioner type, attorney category, lawyer role  
+	135	recordAttorney.customerNumberCorrespondenceData.powerOfAttorneyAddressBag.cityName-- Type: String-- Description: -City name.--- Synonyms: customer city, city, attorney client city  
+	136	recordAttorney.customerNumberCorrespondenceData.powerOfAttorneyAddressBag.geographicRegionName-- Type: String-- Description: -Geographic region name.--- Synonyms: region, state, customer state  
+	137	recordAttorney.customerNumberCorrespondenceData.powerOfAttorneyAddressBag.geographicRegionCode-- Type: String-- Description: -Geographic region code.--- Synonyms: region code, state code, customer area code  
+	138	recordAttorney.customerNumberCorrespondenceData.powerOfAttorneyAddressBag.countryCode-- Type: String-- Description: -Country code.--- Synonyms: nation code, country ID, customer country code  
+	139	recordAttorney.customerNumberCorrespondenceData.powerOfAttorneyAddressBag.postalCode-- Type: String-- Description: -Postal code.--- Synonyms: zip code, postcode, customer postal  
+	140	recordAttorney.customerNumberCorrespondenceData.powerOfAttorneyAddressBag.nameLineOneText-- Type: String-- Description: -First line of name for attorney/agent correspondence.--- Synonyms: name line 1, customer name, first name line  
+	141	recordAttorney.customerNumberCorrespondenceData.powerOfAttorneyAddressBag.countryName-- Type: String-- Description: -Country name.--- Synonyms: country, nation, customer country  
+	142	recordAttorney.customerNumberCorrespondenceData.powerOfAttorneyAddressBag.addressLineOneText-- Type: String-- Description: -First line of the address.--- Synonyms: address line 1, street, customer street  
+	143	recordAttorney.customerNumberCorrespondenceData.powerOfAttorneyAddressBag.addressLineTwoText-- Type: String-- Description: -Second line of the address.--- Synonyms: address line 2, second address, customer address 2  
+	144	recordAttorney.customerNumberCorrespondenceData.patronIdentifier-- Type: String-- Description: -The unique identifier of the patron.--- Synonyms: patron ID, client ID, customer identifier  
+	145	correspondenceAddressBag.cityName-- Type: String-- Description: -City Name.--- Synonyms: city, correspondence city, mail city  
+	146	correspondenceAddressBag.geographicRegionName-- Type: String-- Description: -Geographic region name, e.g. state.--- Synonyms: region, state, mail state  
+	147	correspondenceAddressBag.geographicRegionCode-- Type: String-- Description: -Geographic region code.--- Synonyms: region code, state code, mail area code  
+	148	correspondenceAddressBag.countryCode-- Type: String-- Description: -Country code.--- Synonyms: nation code, country ID, mail country code  
+	149	correspondenceAddressBag.postalCode-- Type: String-- Description: -Postal Code.--- Synonyms: zip code, postcode, mail postal  
+	150	correspondenceAddressBag.nameLineOneText-- Type: String-- Description: -First line of name associated with correspondence address.--- Synonyms: name line 1, mail name, first name line  
+	151	correspondenceAddressBag.countryName-- Type: String-- Description: -Country name.--- Synonyms: country, nation, mail country  
+	152	correspondenceAddressBag.addressLineOneText-- Type: String-- Description: -First line of address associated with correspondence address.--- Synonyms: address line 1, street, mail street
+
+How Synonyms Help the LLM
+	1	Improved Flexibility: The synonyms allow the LLM to recognize alternative phrasing. For example, if a user asks for "patent ID" instead of "patent number," the LLM can map it to applicationMetaData.patentNumber.  
+	2	Contextual Guessing: When a user-s term is ambiguous (e.g., "status"), synonyms like "app status" or "stage" help the LLM choose between applicationMetaData.applicationStatusCode and applicationMetaData.applicationStatusDescriptionText based on context (e.g., numeric vs. text).  
+	3	Handling Layman Terms: Users might use informal terms like "file date" or "inventor surname," which the synonyms link to precise fields (applicationMetaData.filingDate, applicationMetaData.inventorBag.lastName).  
+	4	Reducing Mismatches: With synonyms, the LLM is less likely to miss a match or exclude a field due to unfamiliar wording, enhancing its ability to make reasonable assumptions.
+Let me know if you-d like me to refine this further or test it with specific queries!
+

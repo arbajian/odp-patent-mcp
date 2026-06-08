@@ -37,6 +37,9 @@ from odp_patent_mcp.resources import (
 )
 from odp_patent_mcp.prompts import get_prompt, list_prompts, PROMPTS
 from odp_patent_mcp.uspto.api_uspto_gov import ApiUsptoClient
+from odp_patent_mcp.dictionary import (
+    lookup_fields, get_field_info, get_searchable_fields_reference
+)
 
 # Initialize FastMCP server
 mcp = FastMCP("odp_patent_tools")
@@ -165,6 +168,22 @@ async def resource_search_syntax() -> str:
     and ODP APIs with examples.
     """
     return get_search_syntax_guide()
+
+
+@mcp.resource("patents://field-dictionary")
+async def resource_field_dictionary() -> str:
+    """Get the ODP field dictionary with searchable fields and synonyms.
+
+    Returns a comprehensive reference of all ODP fields, their types,
+    descriptions, and synonyms. Use this to understand what fields are
+    available for searching and filtering.
+
+    The dictionary enables intelligent query expansion: when you search
+    for a field using natural language (e.g., "when was the patent granted"),
+    the system matches it to the relevant field (e.g., grantDate) using
+    synonym and description matching.
+    """
+    return get_searchable_fields_reference()
 
 
 # =====================================================================
@@ -523,6 +542,23 @@ async def odp_search_applications(
     USE THIS TOOL WHEN: You need to search applications with filtering
     by applicant metadata, dates, or other criteria not available in PPUBS.
 
+    INTELLIGENT FIELD MATCHING & AUTO-EXPANSION: This tool uses a comprehensive
+    field dictionary with synonym and description-based matching. When you provide
+    a query, it automatically:
+    1. Looks up matching fields (by synonym, description, and field name)
+    2. Expands the query to search those specific fields + free-text
+    3. Combines results so you get both broad and targeted matches
+
+    Examples:
+    - query="Smith inventor" → expands to search firstInventorName field + broad text
+    - query="machine learning" → searches broadly + matches relevant fields
+    - query="granted date" → matches grantDate field specifically
+
+    For Lucene-style queries (with : or OR/AND), auto-expansion is skipped to
+    preserve your explicit field specifications.
+
+    Consult the field-dictionary resource for all available fields and synonyms.
+
     PARAMETER MAPPING: Simple parameter names are automatically translated to ODP
     Lucene query fields and combined with AND logic:
     - inventor_name → applicationMetaData.firstInventorName
@@ -583,8 +619,28 @@ async def odp_search_applications(
             return escaped
 
     if query:
-        # Pass user query through verbatim — supports Lucene operators.
-        clauses.append(f"({query})")
+        # Auto-expand query using field dictionary
+        # If the query matches known fields, also search those fields specifically
+        matched_fields = lookup_fields(query)
+
+        # Extract a simple search term (remove Lucene operators for field lookup)
+        # If the query looks like a Lucene operator query (contains : or OR/AND),
+        # use it as-is. Otherwise, try field matching.
+        is_lucene_style = ':' in query or ' OR ' in query or ' AND ' in query
+
+        if matched_fields and not is_lucene_style:
+            # Auto-expand: search original term + matched fields
+            expanded_clauses = [f"({query})"]
+
+            for field_path in list(matched_fields.keys())[:3]:  # Limit to top 3 matches
+                expanded_clauses.append(f"{field_path}:({query})")
+
+            # Combine with OR so we catch both broad matches and field-specific matches
+            expanded_query = " OR ".join(expanded_clauses)
+            clauses.append(f"({expanded_query})")
+        else:
+            # Use query as-is (either Lucene-style or no field matches)
+            clauses.append(f"({query})")
     if application_number:
         clauses.append(f"applicationNumberText:{_format_value(application_number)}")
     if patent_number:
